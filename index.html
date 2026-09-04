@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowTask</title>
+  <meta name="description" content="FlowTask — Premium Productivity Suite">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="toast"></div>
+<div id="loading" style="position:fixed;inset:0;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;z-index:9999;">
+  <div style="text-align:center;color:#fff;">
+    <div style="font-size:56px;margin-bottom:8px;">⚡</div>
+    <div style="font-size:26px;font-weight:800;">FlowTask</div>
+    <div style="font-size:13px;opacity:0.7;margin-top:6px;">Memuat workspace kamu...</div>
+    <div style="width:34px;height:34px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;margin:20px auto 0;" class="spinner"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="mob-nav">
+    <div style="color:#818cf8;font-weight:800;font-size:16px;">⚡ FlowTask</div>
+    <div style="display:flex;gap:4px;">
+      <button class="mob-btn active" data-page="dashboard" onclick="goto('dashboard',this)">🏠</button>
+      <button class="mob-btn" data-page="board" onclick="goto('board',this)">📋</button>
+      <button class="mob-btn" data-page="habits" onclick="goto('habits',this)">🔥</button>
+      <button class="mob-btn" data-page="timer" onclick="goto('timer',this)">⏱️</button>
+      <button class="mob-btn" data-page="notes" onclick="goto('notes',this)">📝</button>
+    </div>
+  </div>
+
+  <nav id="sidebar">
+    <div style="padding:6px 10px 18px;">
+      <div style="color:#818cf8;font-weight:800;font-size:18px;">⚡ FlowTask</div>
+      <div style="color:#6b7280;font-size:11px;margin-top:2px;">Productivity Suite</div>
+    </div>
+    <button class="nav-btn active" data-page="dashboard" onclick="goto('dashboard',this)"><span class="nav-icon">🏠</span>Dashboard</button>
+    <button class="nav-btn" data-page="board" onclick="goto('board',this)"><span class="nav-icon">📋</span>Kanban Board</button>
+    <button class="nav-btn" data-page="habits" onclick="goto('habits',this)"><span class="nav-icon">🔥</span>Habit Tracker</button>
+    <button class="nav-btn" data-page="timer" onclick="goto('timer',this)"><span class="nav-icon">⏱️</span>Focus Timer</button>
+    <button class="nav-btn" data-page="notes" onclick="goto('notes',this)"><span class="nav-icon">📝</span>Quick Notes</button>
+    <div style="border-top:1px solid #374151;margin:12px 0;padding-top:12px;">
+      <button class="nav-btn" onclick="exportData()" style="font-size:12px;"><span class="nav-icon">📤</span>Export Data</button>
+      <button class="nav-btn" onclick="importData()" style="font-size:12px;"><span class="nav-icon">📥</span>Import Data</button>
+      <button class="nav-btn" onclick="resetData()" style="font-size:12px;color:#f87171;"><span class="nav-icon">🗑️</span>Reset Data</button>
+    </div>
+    <div class="sb-box">
+      <div style="color:#9ca3af;font-size:10px;font-weight:700;letter-spacing:0.06em;margin-bottom:6px;">PROGRESS HARI INI</div>
+      <div class="pbar"><div class="pbar-fill" id="sb-pbar" style="width:0%;"></div></div>
+      <div style="color:#d1d5db;font-size:11px;font-weight:600;margin-top:6px;" id="sb-pct">0% selesai</div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div><h1 class="page-title" id="d-greeting">Selamat datang! 👋</h1><p class="page-sub" id="d-date"></p></div>
+        <button class="btn-primary" onclick="openModal('m-task')">+ Tambah Task</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);"><div class="stat-num" id="st-total">0</div><div class="stat-lbl">Total Task</div></div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#f59e0b,#ef4444);"><div class="stat-num" id="st-prog">0</div><div class="stat-lbl">In Progress</div></div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#10b981,#059669);"><div class="stat-num" id="st-done">0</div><div class="stat-lbl">Selesai</div></div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#0ea5e9,#6366f1);"><div class="stat-num" id="st-hab">0</div><div class="stat-lbl">Habit Hari Ini</div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><span class="card-title" style="margin:0;">📌 Task Aktif</span><span id="d-count" style="font-size:11px;background:#eef2ff;color:#4f46e5;padding:2px 9px;border-radius:20px;font-weight:600;"></span></div>
+          <div id="d-tasks"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="card"><div class="card-title">🔥 Habit Hari Ini</div><div id="d-habits"></div></div>
+          <div class="card">
+            <div class="card-title">⏱️ Fokus Hari Ini</div>
+            <div style="display:flex;gap:24px;">
+              <div><div style="font-size:28px;font-weight:800;color:#4f46e5;" id="d-sess">0</div><div style="font-size:11px;color:#6b7280;">Sesi Pomodoro</div></div>
+              <div><div style="font-size:28px;font-weight:800;color:#f59e0b;" id="d-min">0</div><div style="font-size:11px;color:#6b7280;">Menit Fokus</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-board" class="page">
+      <div class="page-header">
+        <div><h1 class="page-title">📋 Kanban Board</h1><p class="page-sub">Pindahkan task antar kolom sesuai progres</p></div>
+        <button class="btn-primary" onclick="openModal('m-task')">+ Task Baru</button>
+      </div>
+      <div id="k-grid" class="k-grid"></div>
+    </div>
+
+    <div id="page-habits" class="page">
+      <div class="page-header">
+        <div><h1 class="page-title">🔥 Habit Tracker</h1><p class="page-sub">Bangun kebiasaan positif, satu hari per hari</p></div>
+        <button class="btn-primary" onclick="openModal('m-habit')">+ Habit Baru</button>
+      </div>
+      <div id="h-list"></div>
+    </div>
+
+    <div id="page-timer" class="page">
+      <div style="margin-bottom:22px;">
+        <h1 class="page-title">⏱️ Focus Timer</h1>
+        <p class="page-sub">Teknik Pomodoro — 25 menit fokus, 5 menit istirahat</p>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:22px;padding-top:8px;">
+        <div style="display:flex;gap:6px;background:#f3f4f6;padding:4px;border-radius:12px;border:1px solid #e5e7eb;">
+          <button id="tb-focus" class="timer-mode-btn" onclick="setTimerMode('focus')" style="background:#4f46e5;color:#fff;">Fokus</button>
+          <button id="tb-short" class="timer-mode-btn" onclick="setTimerMode('short')" style="background:transparent;color:#6b7280;">Istirahat Pendek</button>
+          <button id="tb-long" class="timer-mode-btn" onclick="setTimerMode('long')" style="background:transparent;color:#6b7280;">Istirahat Panjang</button>
+        </div>
+        <div style="position:relative;width:200px;height:200px;">
+          <svg width="200" height="200" style="position:absolute;top:0;left:0;transform:rotate(-90deg);">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+            <circle id="t-ring" cx="100" cy="100" r="88" fill="none" stroke="#4f46e5" stroke-width="8" stroke-dasharray="552.9" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div id="t-display" style="font-size:40px;font-weight:800;letter-spacing:-1px;color:#1f2937;">25:00</div>
+            <div id="t-lbl" style="font-size:11px;font-weight:600;color:#6b7280;letter-spacing:0.05em;text-transform:uppercase;margin-top:2px;">WAKTU FOKUS</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#6b7280;font-weight:500;">Sesi hari ini:</span><div id="t-dots" style="display:flex;gap:6px;"></div></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-ghost" onclick="resetTimer()">↺ Reset</button>
+          <button id="t-btn" onclick="toggleTimer()" style="padding:10px 32px;border-radius:50px;border:none;background:#4f46e5;color:#fff;font-size:14px;font-weight:700;cursor:pointer;min-width:130px;font-family:inherit;transition:all 0.15s;">▶ Mulai</button>
+          <button class="btn-ghost" onclick="skipTimer()">⏭ Skip</button>
+        </div>
+        <div class="card" style="width:100%;max-width:420px;padding:16px;">
+          <label class="flabel">Sedang fokus pada:</label>
+          <select id="t-task" class="ifield" style="font-weight:600;margin-top:6px;"><option value="">— Pilih task —</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-notes" class="page">
+      <div class="page-header">
+        <div><h1 class="page-title">📝 Quick Notes</h1><p class="page-sub">Tangkap ide-idemu sebelum hilang</p></div>
+        <button class="btn-primary" onclick="openModal('m-note')">+ Catatan Baru</button>
+      </div>
+      <div id="n-grid" class="n-grid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Modals -->
+<div id="m-task" class="modal-bg"><div class="modal-box"><div class="modal-title">➕ Tambah Task Baru</div><div class="form-row"><label class="flabel">Nama Task</label><input id="ti-name" class="ifield" placeholder="Contoh: Review mockup desain Q4" onkeydown="if(event.key==='Enter')saveTask()"></div><div class="form-grid"><div><label class="flabel">Prioritas</label><select id="ti-pri" class="ifield"><option value="high">🔴 Tinggi</option><option value="med" selected>🟡 Sedang</option><option value="low">🟢 Rendah</option></select></div><div><label class="flabel">Status</label><select id="ti-stat" class="ifield"><option value="todo">📌 To Do</option><option value="progress">🔄 In Progress</option><option value="review">👀 Review</option><option value="done">✅ Done</option></select></div></div><div class="form-row"><label class="flabel">Kategori</label><select id="ti-cat" class="ifield"><option value="work">💼 Pekerjaan</option><option value="personal">🏠 Personal</option><option value="design">🎨 Desain</option><option value="dev">💻 Development</option><option value="health">💪 Kesehatan</option></select></div><div class="modal-footer"><button class="btn-ghost" onclick="closeModal('m-task')">Batal</button><button class="btn-primary" onclick="saveTask()">💾 Simpan</button></div></div></div>
+<div id="m-habit" class="modal-bg"><div class="modal-box"><div class="modal-title">➕ Habit Baru</div><div class="form-row"><label class="flabel">Nama Habit</label><input id="hi-name" class="ifield" placeholder="Contoh: Olahraga Pagi" onkeydown="if(event.key==='Enter')saveHabit()"></div><div class="form-row"><label class="flabel">Icon (Emoji)</label><input id="hi-icon" class="ifield" placeholder="Contoh: 🏃  📚  💧  🧘  ✍️"></div><div class="modal-footer"><button class="btn-ghost" onclick="closeModal('m-habit')">Batal</button><button class="btn-primary" onclick="saveHabit()">💾 Simpan</button></div></div></div>
+<div id="m-note" class="modal-bg"><div class="modal-box"><div class="modal-title">📝 Catatan Baru</div><div class="form-row"><label class="flabel">Judul</label><input id="ni-title" class="ifield" placeholder="Judul catatan..."></div><div class="form-row"><label class="flabel">Isi Catatan</label><textarea id="ni-body" class="ifield" placeholder="Tulis catatanmu di sini..." style="min-height:80px;resize:vertical;"></textarea></div><div class="form-row"><label class="flabel">Warna</label><div style="display:flex;gap:8px;align-items:center;"><div id="ni-color" onclick="cycleNoteColor()" style="width:34px;height:34px;border-radius:9px;cursor:pointer;background:#fde68a;border:2px solid rgba(0,0,0,0.1);transition:all 0.15s;" title="Klik untuk ganti warna"></div><span style="font-size:12px;color:#6b7280;">Klik untuk ganti warna</span></div></div><div class="modal-footer"><button class="btn-ghost" onclick="closeModal('m-note')">Batal</button><button class="btn-primary" onclick="saveNote()">💾 Simpan</button></div></div></div>
+
+<script src="js/utils.js"></script><script src="js/data.js"></script><script src="js/dashboard.js"></script><script src="js/kanban.js"></script><script src="js/habits.js"></script><script src="js/timer.js"></script><script src="js/notes.js"></script><script src="js/main.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>document.getElementById('loading').style.display='none',600));</script>
+</body>
+</html>
